@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Directory Management Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        // Use Inter font as default sans-serif font
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    aspectRatio: {
+                        '16/9': '16 / 9',
+                    },
+                }
+            },
+             // Add aspect-ratio plugin for responsive video embeds
+             // Note: This requires a build step or manual CSS inclusion for CDN usage.
+            // plugins: [
+            //     require('@tailwindcss/aspect-ratio'),
+            // ],
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Simple smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Style for active navigation link */
+        .nav-active {
+            @apply text-indigo-600 font-semibold;
+        }
+        /* Basic styling for content sections */
+        section h2 {
+             @apply text-2xl font-semibold text-gray-800 mb-4 mt-8 border-b pb-2 border-gray-300;
+        }
+        section h3 {
+            @apply text-xl font-medium text-gray-700 mb-3 mt-5;
+        }
+        section p {
+            @apply text-gray-600 mb-4 leading-relaxed;
+        }
+        section ul {
+            @apply list-disc list-inside text-gray-600 mb-4 pl-4 space-y-1;
+        }
+        section code {
+            @apply bg-gray-100 text-sm text-red-600 px-1 py-0.5 rounded;
+        }
+        /* Styling for Mermaid diagram containers */
+        .mermaid-container {
+             @apply bg-gray-100 p-4 rounded-lg shadow-inner my-6 flex justify-center overflow-x-auto;
+        }
+        /* Manual CSS for aspect ratio if plugin isn't used */
+       .aspect-w-16 { position: relative; padding-bottom: calc(9 / 16 * 100%); }
+       .aspect-h-9 { } /* Helper, actual padding is on aspect-w-* */
+       .aspect-w-16 > iframe { position: absolute; height: 100%; width: 100%; top: 0; right: 0; bottom: 0; left: 0; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="text-xl font-bold text-gray-800">AD Management</div>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+            <div class="hidden md:flex space-x-4"> <a href="#intro" class="text-gray-600 hover:text-indigo-600 rounded-md px-3 py-2 text-sm font-medium">Introduction</a>
+                <a href="#structure" class="text-gray-600 hover:text-indigo-600 rounded-md px-3 py-2 text-sm font-medium">Structuring AD</a>
+                <a href="#operations" class="text-gray-600 hover:text-indigo-600 rounded-md px-3 py-2 text-sm font-medium">Core Concepts</a>
+                <a href="#infra" class="text-gray-600 hover:text-indigo-600 rounded-md px-3 py-2 text-sm font-medium">Infrastructure</a>
+                <a href="#maintenance" class="text-gray-600 hover:text-indigo-600 rounded-md px-3 py-2 text-sm font-medium">Maintenance</a>
+                <a href="#about" class="text-gray-600 hover:text-indigo-600 rounded-md px-3 py-2 text-sm font-medium">About</a> </div>
+        </nav>
+        <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#intro" class="block text-gray-600 hover:bg-gray-100 hover:text-indigo-600 rounded-md px-3 py-2 text-base font-medium">Introduction</a>
+                <a href="#structure" class="block text-gray-600 hover:bg-gray-100 hover:text-indigo-600 rounded-md px-3 py-2 text-base font-medium">Structuring AD</a>
+                <a href="#operations" class="block text-gray-600 hover:bg-gray-100 hover:text-indigo-600 rounded-md px-3 py-2 text-base font-medium">Core Concepts</a>
+                <a href="#infra" class="block text-gray-600 hover:bg-gray-100 hover:text-indigo-600 rounded-md px-3 py-2 text-base font-medium">Infrastructure</a>
+                <a href="#maintenance" class="block text-gray-600 hover:bg-gray-100 hover:text-indigo-600 rounded-md px-3 py-2 text-base font-medium">Maintenance</a>
+                <a href="#about" class="block text-gray-600 hover:bg-gray-100 hover:text-indigo-600 rounded-md px-3 py-2 text-base font-medium">About</a> </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+
+        <section id="intro" class="mb-12 bg-white p-6 rounded-lg shadow">
+             <h2 class="!mt-0 !border-none">Introduction to Active Directory</h2>
+             <p>Active Directory Domain Services (AD DS) is Microsoft's directory service for Windows domain networks. Introduced with Windows 2000, it provides a centralized and standardized system for managing network resources, users, computers, and security policies.</p>
+             <h3>Key Features:</h3>
+             <ul>
+                 <li><strong>Centralized Identity Store:</strong> Replaces older domain structures, providing a single database for network identities.</li>
+                 <li><strong>Domain Objects:</strong> Manages objects like users, groups, computers, printers, and shared folders within a domain structure.</li>
+                 <li><strong>Directory Service:</strong> Based on standards like X.500, it offers methods to store, organize, locate, and access network information efficiently.</li>
+             </ul>
+        </section>
+
+        <section id="structure" class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2>Structuring Your Active Directory</h2>
+            <p>Proper structure is crucial for manageability, security, and applying policies effectively within AD DS.</p>
+
+            <div class="mermaid-container">
+                <pre class="mermaid">
+                    graph TD
+                        A[Forest] --> B(Tree: example.com);
+                        A --> C(Tree: anotherexample.net);
+                        B --> D{Domain: example.com};
+                        D --> E[OU: Sales];
+                        D --> F[OU: IT];
+                        E --> G(User: John Doe);
+                        E --> H(Group: Sales Users);
+                        F --> I(Computer: SRV01);
+                </pre>
+            </div>
+            <p class="text-center text-sm text-gray-500 mt-2">Diagram: Basic AD Forest/Tree/Domain/OU Hierarchy</p>
+
+            <h3>Organizational Units (OUs)</h3>
+            <p>OUs are containers within a domain used to organize objects. They are essential for:</p>
+            <ul>
+                <li>Creating a logical hierarchy reflecting your organization's structure.</li>
+                <li>Delegating administrative control over specific sets of objects.</li>
+                <li>Applying Group Policies to specific groups of users or computers.</li>
+            </ul>
+            <h3>Distinguished Names (DNs)</h3>
+            <p>Every object in AD has a unique Distinguished Name (DN) that specifies its exact location within the directory hierarchy (e.g., <code>CN=John Doe,OU=Users,DC=example,DC=com</code>).</p>
+            <h3>Schema</h3>
+            <p>The AD Schema acts as the blueprint for the directory. It defines:</p>
+            <ul>
+                <li>Object Classes: The types of objects that can exist (e.g., User, Computer, Group).</li>
+                <li>Attributes: The properties associated with each object class (e.g., username, password, description).</li>
+            </ul>
+             <h3>Trees and Forests</h3>
+            <p>AD allows for complex structures beyond a single domain:</p>
+            <ul>
+                <li><strong>Tree:</strong> A collection of one or more domains that share a contiguous DNS namespace (e.g., `example.com` and `sales.example.com`).</li>
+                <li><strong>Forest:</strong> A collection of one or more domain trees that trust each other. They share a common schema and global catalog but don't necessarily share a contiguous namespace.</li>
+            </ul>
+        </section>
+
+        <section id="operations" class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2>Core Concepts & Operations</h2>
+            <p>Understanding these core concepts is fundamental to managing AD.</p>
+            <h3>Accessing AD: LDAP</h3>
+            <p>The Lightweight Directory Access Protocol (LDAP) is the primary protocol used to query and modify information stored in Active Directory.</p>
+            <h3>Locating Services: DNS</h3>
+            <p>Domain Name System (DNS) is critically important for AD. Clients and servers use DNS to locate Domain Controllers (DCs) and other essential services (via SRV records).</p>
+            <h3>Authentication</h3>
+            <p>AD handles user and computer authentication:</p>
+            <ul>
+                <li><strong>Kerberos:</strong> The preferred, secure authentication protocol used by default in Windows 2000 and later.</li>
+                <li><strong>NTLM:</strong> An older, less secure challenge/response protocol, maintained for backward compatibility.</li>
+            </ul>
+
+            <div class="mermaid-container">
+                <pre class="mermaid">
+                    sequenceDiagram
+                        participant Client
+                        participant KDC (AS + TGS)
+                        participant Server
+
+                        Client->>KDC: 1. AS-REQ: Request TGT
+                        KDC-->>Client: 2. AS-REP: Encrypted TGT
+                        Client->>KDC: 3. TGS-REQ: Request Service Ticket (using TGT)
+                        KDC-->>Client: 4. TGS-REP: Encrypted Service Ticket
+                        Client->>Server: 5. AP-REQ: Authenticator + Service Ticket
+                        Server-->>Client: 6. AP-REP (Optional): Server Authentication
+                </pre>
+            </div>
+             <p class="text-center text-sm text-gray-500 mt-2">Diagram: Simplified Kerberos Authentication Flow</p>
+
+             <h3>Group Policy</h3>
+            <p>Group Policy Objects (GPOs) allow administrators to define and enforce configurations and security settings for users and computers across the domain. GPOs can be linked to sites, domains, or OUs.</p>
+        </section>
+
+        <section id="infra" class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2>Infrastructure & Replication</h2>
+            <p>The physical and logical components supporting AD DS.</p>
+            <h3>Domain Controllers (DCs)</h3>
+            <p>Servers running the AD DS role are called Domain Controllers. Key points:</p>
+            <ul>
+                <li>Each DC holds a writable copy of the domain's database (for its domain).</li>
+                <li>Multiple DCs provide fault tolerance, load balancing, and geographic distribution.</li>
+                <li><strong>Multi-Master Replication:</strong> Changes made on one DC are replicated to all other DCs within the same domain, ensuring consistency.</li>
+            </ul>
+
+             <div class="mermaid-container">
+                <pre class="mermaid">
+                    graph LR
+                        DC1 -- Change --> DC2;
+                        DC2 -- Change --> DC1;
+                        DC1 -- Change --> DC3;
+                        DC3 -- Change --> DC1;
+                        DC2 -- Change --> DC3;
+                        DC3 -- Change --> DC2;
+
+                        subgraph Domain Controllers
+                            DC1(DC 1);
+                            DC2(DC 2);
+                            DC3(DC 3);
+                        end
+                </pre>
+            </div>
+            <p class="text-center text-sm text-gray-500 mt-2">Diagram: Multi-Master Replication Between DCs</p>
+
+
+            <h3>FSMO Roles</h3>
+            <p>Flexible Single Master Operations (FSMO) roles are specific tasks handled by only one DC at a time within a domain or forest to prevent conflicts. Examples include Schema Master, RID Master, and PDC Emulator.</p>
+             <h3>Read-Only Domain Controllers (RODCs)</h3>
+            <p>RODCs hold a read-only copy of the AD database. They are typically deployed in locations with lower physical security (e.g., branch offices) and cache limited user credentials.</p>
+            <h3>Global Catalog (GC)</h3>
+            <p>A subset of attributes for all objects in the entire forest is stored on DCs designated as Global Catalog servers. GCs facilitate faster searches across multiple domains within a forest.</p>
+            <h3>Sites and Subnets</h3>
+            <p>AD Sites represent the physical topology of the network:</p>
+            <ul>
+                <li>Defined by one or more IP subnets.</li>
+                <li>Used to control replication traffic between DCs (more frequent within a site, less frequent between sites).</li>
+                <li>Help clients locate the nearest DC or service.</li>
+            </ul>
+        </section>
+
+        <section id="maintenance" class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2>Maintenance & Troubleshooting</h2>
+            <p>Keeping AD healthy and functional.</p>
+            <h3>Domain/Forest Functional Levels</h3>
+            <p>Raising the functional level of your domain or forest enables newer AD features but requires all DCs to meet the minimum OS requirement for that level.</p>
+            <h3>Troubleshooting Tools</h3>
+            <p>Common command-line tools for diagnosing AD issues:</p>
+            <ul>
+                <li><code>dcdiag</code>: Performs comprehensive health checks on Domain Controllers.</li>
+                <li><code>repadmin</code>: Diagnoses and manages AD replication issues.</li>
+                <li><code>nltest</code>: Tests secure channel status and trust relationships.</li>
+            </ul>
+            <h3>Health Monitoring</h3>
+            <p>Regular monitoring is crucial. Tools like Microsoft System Center Operations Manager (SCOM) or cloud services like Azure AD Connect Health (for hybrid environments) provide valuable insights into AD health.</p>
+        </section>
+
+        <section id="about" class="mb-12 bg-white p-6 rounded-lg shadow">
+            <h2>About This Page</h2>
+            <p>This page was generated with assistance from Google Gemini, an AI language model. The content is based on a summary derived from the following YouTube video, which provides an in-depth explanation of Active Directory Domain Services.</p>
+
+            <div class="mt-6 aspect-w-16 aspect-h-9">
+                <iframe
+                    class="rounded-lg shadow"
+                    src="https://www.youtube.com/embed/0"  /* NOTE: Using '0' as the video ID based on the original URL provided. Replace with the actual ID if different. */
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen>
+                </iframe>
+            </div>
+             <p class="text-sm text-gray-500 mt-4">While the information aims to be accurate based on the source video, always consult official documentation and expert advice for critical Active Directory management tasks.</p>
+        </section>
+
+    </main> <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="container mx-auto px-6 py-4 text-center text-gray-500 text-sm">
+            © 2025 AD Management Guide. Content based on video summary. AI-assisted generation.
+        </div>
+    </footer>
+
+    <script>
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navLinks = mobileMenu.querySelectorAll('a'); // Get all links in mobile menu
+
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when a link is clicked
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+    </script>
+
+    <script type="module">
+        // Dynamically import Mermaid only if mermaid elements exist
+        if (document.querySelector('pre.mermaid')) {
+            try {
+                const mermaid = await import('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs');
+                mermaid.default.initialize({ startOnLoad: true, theme: 'base', themeVariables: {
+                     primaryColor: '#f3f4f6', // bg-gray-100
+                     primaryTextColor: '#1f2937', // text-gray-800
+                     lineColor: '#6b7280', // text-gray-500
+                     textColor: '#374151', // text-gray-700
+                     fontSize: '14px'
+                } });
+            } catch (error) {
+                console.error("Failed to load Mermaid diagramming library:", error);
+                // Optionally display a message to the user
+            }
+        }
+    </script>
+     </body>
+</html>
